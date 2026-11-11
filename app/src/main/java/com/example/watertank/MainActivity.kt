@@ -61,8 +61,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+data class DadosCaixa(
+    val nivelPercentual: Int? = null,
+    val volumeAtualLitros: Int? = null,
+    val capacidadeLitros: Int = 1000,
+    val consumoHojeLitros: Int? = null,
+    val sensorConectado: Boolean = false,
+    val alerta: String? = null
+)
+
 @Composable
-fun InicioContent() {
+fun InicioContent(
+    dados: DadosCaixa = DadosCaixa()
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Fundo
@@ -70,15 +81,16 @@ fun InicioContent() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
+
+            // Cabeçalho
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(modifier = Modifier.width(10.dp))
-
                 Text(
                     text = "WATERTANK",
                     color = Azul,
@@ -86,7 +98,8 @@ fun InicioContent() {
                     fontWeight = FontWeight.Bold
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = "Olá!",
@@ -103,7 +116,7 @@ fun InicioContent() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Cartão do nível da caixa
+            // Nível da caixa
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -125,14 +138,17 @@ fun InicioContent() {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "73%",
+                        text = dados.nivelPercentual?.let { "$it%" } ?: "--",
                         color = Azul,
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold
                     )
 
                     LinearProgressIndicator(
-                        progress = { 0.73f },
+                        progress = {
+                            (dados.nivelPercentual ?: 0)
+                                .coerceIn(0, 100) / 100f
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(10.dp),
@@ -143,7 +159,11 @@ fun InicioContent() {
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "730 de 1.000 litros",
+                        text = if (dados.volumeAtualLitros != null) {
+                            "${dados.volumeAtualLitros} de ${dados.capacidadeLitros} litros"
+                        } else {
+                            "Aguardando leitura do sensor..."
+                        },
                         color = Cinza,
                         fontSize = 14.sp
                     )
@@ -151,13 +171,17 @@ fun InicioContent() {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "● Nível adequado",
-                        color = Color(0xFF21834A),
+                        text = dados.alerta ?: "Aguardando informações...",
+                        color = if (dados.alerta != null) {
+                            Color(0xFFD97706)
+                        } else {
+                            Cinza
+                        },
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                Color(0xFFE5F7EC),
+                                Color(0xFFEFF4F8),
                                 RoundedCornerShape(10.dp)
                             )
                             .padding(12.dp)
@@ -182,13 +206,19 @@ fun InicioContent() {
             ) {
                 InfoCard(
                     titulo = "💧 Consumo hoje",
-                    valor = "125 L",
+                    valor = dados.consumoHojeLitros?.let {
+                        "$it L"
+                    } ?: "--",
                     modifier = Modifier.weight(1f)
                 )
 
                 InfoCard(
                     titulo = "📶 Sensor",
-                    valor = "Conectado",
+                    valor = if (dados.sensorConectado) {
+                        "Conectado"
+                    } else {
+                        "Desconectado"
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -212,14 +242,12 @@ fun InicioContent() {
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    text = "✓  Nenhum alerta no momento.",
+                    text = dados.alerta
+                        ?: "Nenhum alerta recebido.",
                     color = Cinza,
                     modifier = Modifier.padding(18.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
         }
     }
 }
